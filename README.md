@@ -66,9 +66,5 @@ Alongside daily transaction parsing, I engineered a secondary n8n workflow desig
 
 ## 🎬 Demo 
 
-*(Replace the placeholder below with a 15-second GIF showing a transaction triggering the n8n workflow and appearing categorized in ezbookkeeping)*
-
-`[TODO: Insert a demonstration GIF or screenshot of the n8n workflow here]`
-
 ---
 *Developed by [Weilin Cheng](https://www.linkedin.com/in/weilin-cheng/) | [Portfolio](https://wlc.gd.edu.kg/)*
