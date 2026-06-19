@@ -49,13 +49,19 @@ graph TD
   - If the transaction context is completely unrecognizable or missing key data, the pipeline halts to prevent database pollution (dirty data).
   - If recognizable but ambiguous, the pipeline defaults to an "Other" category for seamless manual review.
 
+## 🔄 Additional Workflow: Credit Card Auto-Reconciliation
+
+Alongside daily transaction parsing, I engineered a secondary n8n workflow designed to monitor and automatically log monthly credit card statement repayments.
+- Autonomously detects payment triggers and records the transfer between checking accounts and credit lines within `ezbookkeeping`.
+- Maintains a **flawless, zero-balance financial ledger** without any manual reconciliation at the end of the month.
+
 ## 🛠️ Tech Stack
 
 - **Orchestration**: n8n
-- **Cloud Infrastructure**: Google Cloud Platform (GCP)
+- **Cloud Infrastructure**: Google Cloud Platform (GCP) Virtual Private Server (VPS)
 - **Database**: PostgreSQL
 - **AI / Logic**: OpenAI GPT-4o-mini, Prompt Engineering
-- **Application**: ezbookkeeping
+- **Application**: ezbookkeeping (Self-hosted via Docker)
 - **Integrations**: iOS Shortcuts (Webhooks), Telegram API
 
 ## 🎬 Demo 
