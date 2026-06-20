@@ -4,7 +4,7 @@
 
 ![GCP](https://img.shields.io/badge/GCP-Deployed-blue) ![n8n](https://img.shields.io/badge/n8n-Workflow-orange) ![LLMs](https://img.shields.io/badge/OpenAI-GPT--4o--mini-purple) ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
 
-<img src="./demo.gif" alt="Financial Pipeline Demo" width="400">
+<img src="./demo.gif" alt="Financial Pipeline Demo" width="300">
 
 ## 🚀 Why I Built This (The Impact)
 
