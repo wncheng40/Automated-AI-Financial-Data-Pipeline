@@ -63,7 +63,7 @@ Alongside daily transaction parsing, I engineered a secondary n8n workflow desig
 - **Cloud Infrastructure**: Google Cloud Platform (GCP) Virtual Private Server (VPS)
 - **Database**: PostgreSQL
 - **AI / Logic**: OpenAI GPT-4o-mini, Prompt Engineering
-- **Application**: ezbookkeeping (Self-hosted via Docker)
+- **Application**: [ezbookkeeping](https://github.com/mayswind/ezbookkeeping) (Self-hosted via Docker)
 - **Integrations**: iOS Shortcuts (Webhooks), Telegram API
 
  
