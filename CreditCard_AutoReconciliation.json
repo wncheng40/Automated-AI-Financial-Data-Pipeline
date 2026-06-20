@@ -1,0 +1,400 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "labelIds": [
+            "Label_8"
+          ],
+          "readStatus": "unread"
+        },
+        "options": {}
+      },
+      "id": "779067fd-4302-4526-91f8-4ddfc4b28f44",
+      "name": "Gmail Trigger (付款確認)",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        -1024
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "T7je0tcesPyZM7hM",
+          "name": "your-email@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pay-0001",
+              "name": "systemPrompt",
+              "value": "You are a professional financial bookkeeping assistant. \nPlease determine whether the provided email is a \"Credit Card Automatic Payment Confirmation\" notification. If it is, extract the payment information.\n\nOUTPUT STRICTLY IN PURE JSON FORMAT ONLY. Do not include any conversational text, explanations, markdown formatting, or code blocks (do NOT use ```json).\n\n【Evaluation Rules】\n- The email must be a notification from a bank confirming that a credit card payment has been \"received\" or \"posted\".\n- Common subject keywords: payment received, payment posted, payment confirmation.\n- Ignore all other types of emails (e.g., billing statements, promotional emails, balance alerts, payment due reminders).\n\n【Extraction Fields (if confirmed as a payment)】\n1. card_name: MUST exactly match one of the following strings based on the issuing bank:\n[Chase 銀行, Chase Unlimited Freedom, Customized Cash Reward, CITI StrataSM, Apple Card]\nHits:\n- \"Chase Unlimited Freedom\" (Issued by Chase) -6682\n- \"Customized Cash Reward\" (Issued by Bank of America) -2901\n- \"CITI StrataSM\" (Issued by Citi) -0284\n- \"Apple Card\" (Issued by Apple) -0242\n\n2. payment_amount: The actual payment amount as a numeric string. Do NOT include the '$' symbol or commas, but MUST KEEP the decimal point (e.g., \"52.88\").\n\n【Output Format】\nSuccess: {\"card_name\": \"Exact Card Name\", \"payment_amount\": \"Amount\"}\nNot a payment confirmation: {\"error\": \"not_a_payment\"}\n\n【Special Notes】\n- Apple Card emails usually come from apple.com and the content is typically very concise.\n- Chase, Bank of America (BoA), and Citi emails will clearly state the payment amount.\n- ONLY extract completed or posted payments. Do NOT extract pending, processing, or scheduled payments.",
+              "type": "string"
+            },
+            {
+              "id": "pay-0002",
+              "name": "emailContent",
+              "value": "={{ $json.text || $json.snippet || '(無法讀取信件內容)' }}",
+              "type": "string"
+            },
+            {
+              "id": "pay-0003",
+              "name": "emailSubject",
+              "value": "={{ $json.subject || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "pay-0004",
+              "name": "emailFrom",
+              "value": "={{ $json.from || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "b278a8d3-5c5c-4d9d-b10f-84a7e03dadc6",
+              "name": "date",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ec593b9e-90a4-401c-b009-4ce4fc118335",
+      "name": "準備 AI Prompt",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        784,
+        -1024
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 取得 AI 回傳（支援多種格式）\nconst aiOutput = $input.first().json;\n\n// 直接從「準備 AI Prompt」節點取得最初的信件時間，不依賴 AI 判斷\n// 取得原始時間\nconst rawDate = $('準備 AI Prompt').first().json.date;\n\n// 使用 n8n 內建的 Luxon (DateTime) 轉換時區並輸出為 ISO 格式\nconst emailDate = DateTime.fromISO(rawDate).setZone('America/Chicago').toISO();\n\nlet parsed = null;\ntry {\n  let rawContent = \"\";\n  if (typeof aiOutput.text === 'string') {\n    rawContent = aiOutput.text;\n  } else if (typeof aiOutput.output === 'string') {\n    rawContent = aiOutput.output;\n  } else if (aiOutput.card_name || aiOutput.error) {\n    parsed = aiOutput;\n  } else {\n    const firstVal = Object.values(aiOutput).find(v => typeof v === 'string' && (v.includes('{') || v.includes('}')));\n    if (firstVal) {\n      rawContent = firstVal;\n    } else {\n      throw new Error('找不到類似 JSON 的內容');\n    }\n  }\n\n  // 如果還沒有轉成物件，進行解析並清理可能包含的 Markdown 標記\n  if (!parsed && rawContent) {\n    let cleanText = rawContent.replace(/```json/ig, '').replace(/```/g, '').trim();\n    parsed = JSON.parse(cleanText);\n  }\n} catch (error) {\n  // 抓取不正確的狀況 1：AI 回傳的格式完全壞掉，不是 JSON\n  throw new Error('無法解析 AI 回傳的 JSON 格式：' + error.message + '\\n原始內容：' + JSON.stringify(aiOutput));\n}\n\n// 狀況 2：明確辨識為不是付款確認信件 → 停止流程\n// 在 n8n 中，Code 節點回傳空陣列 []，代表不會有任何資料傳遞到下一個節點，\n// 流程會在這裡「安靜地結束」，不會被標記為錯誤。\nif (parsed?.error === 'not_a_payment') {\n  return []; \n}\n\n// 抓取不正確的狀況 3：有缺漏必要欄位 -> 拋出錯誤 (會讓流程標記為 Failed)\nconst required = ['card_name', 'payment_amount'];\nfor (const field of required) {\n  if (parsed[field] === undefined || parsed[field] === null || parsed[field] === '') {\n    throw new Error(`AI 抓取錯誤，缺少必要欄位：${field}。\\n目前抓到：${JSON.stringify(parsed)}`);\n  }\n}\n\n// 抓取不正確的狀況 4：信用卡名稱不在白名單中 -> 拋出錯誤\nconst validCards = [\n  'Chase Unlimited Freedom',\n  'Customized Cash Reward',\n  'CITI StrataSM',\n  'Apple Card'\n];\nif (!validCards.includes(parsed.card_name)) {\n  throw new Error(`AI 抓取錯誤，card_name (${parsed.card_name}) 不在系統白名單中。`);\n}\n\n// 抓取不正確的狀況 5：金額不是有效數字 -> 拋出錯誤\n// 確保移除可能的貨幣符號或逗號\nlet cleanAmountStr = String(parsed.payment_amount).replace(/[$,]/g, '');\nconst amount = parseFloat(cleanAmountStr);\nif (isNaN(amount) || amount <= 0) {\n  throw new Error(`AI 抓取錯誤，金額無效：${parsed.payment_amount}`);\n}\n\n// 成功抓取，將資料傳遞給下一個節點\nreturn [{ json: {\n  targetAccount: parsed.card_name,\n  balance: amount,\n  paymentDate: emailDate,\n  source: 'Chase 銀行'\n} }];"
+      },
+      "id": "e9880528-5442-4d85-bae9-8d1486d21515",
+      "name": "解析 AI 回傳",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        -1024
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "your-telegram-chat-id",
+        "text": "=💳 **信用卡還款已記帳**\n\n🏦 **扣款帳戶**：{{ $('準備還款請求 Body').item.json.source }}\n🎯 **信用卡**：{{ $('準備還款請求 Body').item.json.targetAccount }}\n💵 **還款金額**：${{ $('準備還款請求 Body').item.json.balance }}\n📅 **付款日期**：{{ $('準備還款請求 Body').item.json.paymentDate.split('T')[0] }}\n\n---\n✅ ezBookkeeping 已自動記錄",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "ae861c8e-6586-4426-9e31-185b9810ba18",
+      "name": "Telegram 通知",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1936,
+        -1024
+      ],
+      "webhookId": "a679fc71-2a5b-44f2-bfda-d5323ca4abd4",
+      "credentials": {
+        "telegramApi": {
+          "id": "tyYbMndtzQrkJwmZ",
+          "name": "Wojak bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "= \nEmail_Subject: {{ $json.emailSubject }}\nContent: {{ $json.emailContent }}\n\n\n",
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        976,
+        -1024
+      ],
+      "id": "b1901259-d46f-4846-9ae3-5883157b20ff",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        976,
+        -784
+      ],
+      "id": "d1b54329-f438-4681-8155-61618918b9bb",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "NKVEqSp1KttD4fsE",
+          "name": "GitHub Chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ezbookkeeping-app:8080/mcp",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.mcpBody }}",
+        "options": {}
+      },
+      "id": "751ef700-6128-4e47-bc6a-6267a4770f2c",
+      "name": "MCP: 記錄信用卡還款",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1728,
+        -1024
+      ],
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "WeCGwO4XDVjbYzkR",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = {\n  jsonrpc: '2.0',\n  method: 'tools/call',\n  params: {\n    name: 'add_transaction',\n    arguments: {\n      type: 'transfer',\n      time: $json.paymentDate,\n      amount: String($json.balance),\n      destination_amount: String($json.balance),\n      category_name: '信用卡還款',\n      account_name: $json.source,\n      destination_account_name: $json.targetAccount,\n      tags: ['Settle'],\n      comment: '自動還款 - ' + $json.targetAccount\n    }\n  },\n  id: 3\n};\n\nreturn [{ json: { ...$json, mcpBody: body } }];"
+      },
+      "id": "5fa203cc-6a98-47e4-a73f-9dbb5593d786",
+      "name": "準備還款請求 Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        -1024
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Gmail Trigger (付款確認)\nPayment Detection: Polls incoming emails for credit card payment confirmations.",
+        "height": 308,
+        "width": 204,
+        "color": 6
+      },
+      "id": "92e74d04-1eca-4bea-87db-5c4ceca88a12",
+      "name": "Sticky_Gmail Trigger (付款確認)",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -1184
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Prepare-AI Prompt\nPrompt Engineering: Guides the LLM to extract payment amounts strictly and match predefined credit card names.",
+        "height": 308,
+        "width": 188,
+        "color": 6
+      },
+      "id": "5219fda4-2a99-4c8b-b3b3-42106999bab3",
+      "name": "Sticky_準備 AI Prompt",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -1184
+      ]
+    },
+    {
+      "parameters": {
+        "content": "###  Analysis AI recall and check the format \nData Validation & Fallback: Verifies parsed JSON format, checks for missing fields, and enforces account whitelists. Halts quietly if not a payment.",
+        "height": 308,
+        "width": 204,
+        "color": 6
+      },
+      "id": "1e97971d-58d4-42de-9d91-3089d58502e0",
+      "name": "Sticky_解析 AI 回傳",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        -1184
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Telegram notice\nFeedback Loop: Sends real-time notification to the user affirming successful reconciliation.",
+        "height": 308,
+        "width": 252,
+        "color": 6
+      },
+      "id": "8f55b505-e933-496e-8fa6-0985c77ce1f8",
+      "name": "Sticky_Telegram 通知",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        -1184
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### AI Agent\nPayment Extractor: Evaluates email content and parses out the target account and balance paid.",
+        "height": 308,
+        "width": 316,
+        "color": 6
+      },
+      "id": "d2f1303c-f75c-47be-91bb-638fda0f47c2",
+      "name": "Sticky_AI Agent",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -1184
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### MCP: requested the payment for credit card\nZero-Balance Sync: POSTs the transfer transaction via MCP to reconcile checking and credit accounts.",
+        "height": 308,
+        "width": 236,
+        "color": 6
+      },
+      "id": "f75c199f-f7ed-4727-8cfb-f0d0e6d20de9",
+      "name": "Sticky_MCP: 記錄信用卡還款",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        -1184
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### initial Body\nPayload Transformation: Maps the validated payment data to ezbookkeeping's MCP schema (Transfer type).",
+        "height": 308,
+        "width": 188,
+        "color": 6
+      },
+      "id": "f1d5f10e-21d8-480f-a41a-e83b12c40868",
+      "name": "Sticky_準備還款請求 Body",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        -1184
+      ]
+    }
+  ],
+  "connections": {
+    "Gmail Trigger (付款確認)": {
+      "main": [
+        [
+          {
+            "node": "準備 AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "準備 AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "解析 AI 回傳": {
+      "main": [
+        [
+          {
+            "node": "準備還款請求 Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "解析 AI 回傳",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP: 記錄信用卡還款": {
+      "main": [
+        [
+          {
+            "node": "Telegram 通知",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "準備還款請求 Body": {
+      "main": [
+        [
+          {
+            "node": "MCP: 記錄信用卡還款",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0a76ca29ada25778045d943b92ea548e08e0e5121a330411faed9500d3c93bcc"
+  }
+}
