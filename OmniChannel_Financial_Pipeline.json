@@ -18,18 +18,18 @@
         },
         "options": {}
       },
-      "id": "a604b830-401f-42c7-ad3c-f6cf59accde9",
-      "name": "Gmail Trigger",
+      "id": "70e518c4-0aaa-4212-844c-2bc4e1430f4f",
+      "name": "Gmail Trigger1",
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.2,
       "position": [
-        848,
-        -128
+        4112,
+        2880
       ],
       "credentials": {
         "gmailOAuth2": {
           "id": "T7je0tcesPyZM7hM",
-          "name": "your-email@gmail.com"
+          "name": "penguin861225@gmail.com"
         }
       }
     },
@@ -58,13 +58,13 @@
         "body": "{\"jsonrpc\":\"2.0\",\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"n8n\",\"version\":\"1.0.0\"}},\"id\":1}",
         "options": {}
       },
-      "id": "9842c3ac-b1dd-4814-be36-002cde3a2977",
-      "name": "MCP Initialize",
+      "id": "b6e43b90-4766-4a7b-9796-44719a4a5db5",
+      "name": "MCP Initialize1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        2960,
-        240
+        6224,
+        3248
       ],
       "credentials": {
         "httpBearerAuth": {
@@ -95,16 +95,16 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={{\n  JSON.stringify({\n    jsonrpc: '2.0',\n    method: 'tools/call',\n    params: {\n      name: 'add_transaction',\n      arguments: {\n        type: 'expense',\n        time: JSON.parse($('AI Agent1').item.json.output).time,\n        amount: JSON.parse($('AI Agent1').item.json.output).amount,\n        category_name: JSON.parse($('AI Agent1').item.json.output).category_name,\n        account_name: JSON.parse($('AI Agent1').item.json.output).account_name,\n        comment: JSON.parse($('AI Agent1').item.json.output).comment\n      }\n    },\n    id: 2\n  })\n}}",
+        "body": "={{\n  JSON.stringify({\n    jsonrpc: '2.0',\n    method: 'tools/call',\n    params: {\n      name: 'add_transaction',\n      arguments: {\n        type: 'expense',\n        time: JSON.parse($('AI Agent2').item.json.output).time,\n        amount: JSON.parse($('AI Agent2').item.json.output).amount,\n        category_name: JSON.parse($('AI Agent2').item.json.output).category_name,\n        account_name: JSON.parse($('AI Agent2').item.json.output).account_name,\n        comment: JSON.parse($('AI Agent2').item.json.output).comment\n      }\n    },\n    id: 2\n  })\n}}",
         "options": {}
       },
-      "id": "12665b76-9b8f-401a-89f4-5581944fb5e2",
-      "name": "MCP: 新增支出記錄",
+      "id": "2c937c04-7348-4540-b06a-b9f36ddaac40",
+      "name": "MCP: 新增支出記錄1",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [
-        3200,
-        240
+        6464,
+        3248
       ],
       "credentials": {
         "httpBearerAuth": {
@@ -116,7 +116,7 @@
     {
       "parameters": {
         "chatId": "your-telegram-chat-id",
-        "text": "=🎉 自動記帳成功！\n\n💰 消費金額：{{ JSON.parse($('AI Agent1').item.json.output).amount }}\n🛍️ 商家：{{ JSON.parse($('AI Agent1').item.json.output).comment }}\n📂 分類：{{ JSON.parse($('AI Agent1').item.json.output).category_name }}\n💳 帳戶：{{ JSON.parse($('AI Agent1').item.json.output).account_name }}",
+        "text": "=🎉 自動記帳成功！\n\n💰 消費金額：{{ JSON.parse($('AI Agent2').item.json.output).amount }}\n🛍️ 商家：{{ JSON.parse($('AI Agent2').item.json.output).comment }}\n📂 分類：{{ JSON.parse($('AI Agent2').item.json.output).category_name }}\n💳 帳戶：{{ JSON.parse($('AI Agent2').item.json.output).account_name }}",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -124,11 +124,11 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3472,
-        240
+        6736,
+        3248
       ],
-      "id": "1e5d3fb5-551b-451e-88b9-fdc1097d192e",
-      "name": "Send a text message",
+      "id": "df17c74b-b84b-4c2d-bc2e-a2832e366a0c",
+      "name": "Send a text message1",
       "webhookId": "3b5b5c25-f77a-4ced-8353-486a1c7b63e8",
       "credentials": {
         "telegramApi": {
@@ -139,16 +139,16 @@
     },
     {
       "parameters": {
-        "jsCode": "// 取得 AI 產生的 JSON\nlet aiData = JSON.parse($('AI Agent1').item.json.output);\n\n// 定義允許的白名單\nconst validCategories = [\"Housing\", \"Phone Bill\", \"Food & Grocery\", \"Transportation\", \"Medical & Healthcare\", \"Coffee Drink & Dessert\", \"聚餐娛樂\", \"Workout\", \"Travel\", \"Gifts\", \"Clothing\", \"Other\"];\nconst validAccounts = [\"Chase 銀行\", \"Apple credit card\", \"BoA credit card\", \"Chase Unlimited Freedom\", \"CITI Thank You credit card\"];\n\n// 檢查並強制校正分類 (如果不在清單內，就變成 Other)\nif (!validCategories.includes(aiData.category_name)) {\n  aiData.category_name = \"Other\";\n}\n\n// 檢查並強制校正帳戶 (如果不在清單內，就變成 Chase 銀行)\nif (!validAccounts.includes(aiData.account_name)) {\n  aiData.account_name = \"Chase 銀行\";\n}\n\n// 將乾淨的資料往下傳遞\nreturn [{ json: aiData }];"
+        "jsCode": "// 取得 AI 產生的 JSON\nlet aiData = JSON.parse($('AI Agent2').item.json.output);\n\n// 定義允許的白名單\nconst validCategories = [\"Housing\", \"Phone Bill\", \"Food & Grocery\", \"Transportation\", \"Medical & Healthcare\", \"Coffee Drink & Dessert\", \"聚餐娛樂\", \"Workout\", \"Travel\", \"Gifts\", \"Clothing\", \"Other\"];\nconst validAccounts = [\"Chase 銀行\", \"Apple credit card\", \"BoA credit card\", \"Chase Unlimited Freedom\", \"CITI Thank You credit card\"];\n\n// 檢查並強制校正分類 (如果不在清單內，就變成 Other)\nif (!validCategories.includes(aiData.category_name)) {\n  aiData.category_name = \"Other\";\n}\n\n// 檢查並強制校正帳戶 (如果不在清單內，就變成 Chase 銀行)\nif (!validAccounts.includes(aiData.account_name)) {\n  aiData.account_name = \"Chase 銀行\";\n}\n\n// 將乾淨的資料往下傳遞\nreturn [{ json: aiData }];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2608,
-        240
+        5872,
+        3248
       ],
-      "id": "43c851e7-1031-4646-9ed6-f5c52625851c",
-      "name": "Check the output"
+      "id": "19ae06bb-2111-46c9-b2a8-fafb17d9e69e",
+      "name": "Check the output1"
     },
     {
       "parameters": {
@@ -159,11 +159,11 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        1376,
-        240
+        4640,
+        3248
       ],
-      "id": "030e934e-7e80-4bf4-816f-13679337055c",
-      "name": "Webhook",
+      "id": "5ec75899-c3fa-4803-ac47-771709d4788d",
+      "name": "Webhook1",
       "webhookId": "110045dd-9719-4221-9941-90867224b5a6"
     },
     {
@@ -182,11 +182,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2256,
-        528
+        5520,
+        3536
       ],
-      "id": "e74b8ec1-eed2-4c95-9bc6-acbf8b48f1c8",
-      "name": "ChatAnyWhere Model",
+      "id": "74363e77-1e09-459e-b1fc-3ddbb4fa216f",
+      "name": "ChatAnyWhere Model1",
       "credentials": {
         "openAiApi": {
           "id": "cJHEbYeXQYXGUF41",
@@ -206,16 +206,16 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        1392,
-        576
+        4656,
+        3584
       ],
-      "id": "6a9567fa-5e82-46a7-afef-66b4f16713bf",
-      "name": "Telegram Trigger",
+      "id": "f701ed09-b067-478e-bb51-59b6c94c2589",
+      "name": "Telegram Trigger1",
       "webhookId": "61ececf7-dc42-4097-8d62-9e19e923614d",
       "credentials": {
         "telegramApi": {
           "id": "tyYbMndtzQrkJwmZ",
-          "name": "your name bot"
+          "name": "Wojak bot"
         }
       }
     },
@@ -226,11 +226,11 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1392,
-        -128
+        4656,
+        2880
       ],
-      "id": "1d66c732-ba7e-4014-b03f-e913e1ca881b",
-      "name": "cleaning format"
+      "id": "27b19372-744d-41d7-b12a-5e71d1398530",
+      "name": "cleaning format1"
     },
     {
       "parameters": {
@@ -259,11 +259,11 @@
       "type": "n8n-nodes-base.filter",
       "typeVersion": 2.3,
       "position": [
-        1152,
-        -128
+        4416,
+        2880
       ],
-      "id": "d6fb073f-0218-4ec3-8882-3b2d820d9601",
-      "name": "Filter"
+      "id": "9abb12ec-be1b-4426-858a-66385b8c8aa7",
+      "name": "Filter1"
     },
     {
       "parameters": {
@@ -272,13 +272,13 @@
         "width": 412,
         "color": 6
       },
-      "id": "c3fe228c-7040-4bf8-a6aa-27d598ee2815",
-      "name": "Sticky_準備 AI Prompt",
+      "id": "9c763ee3-4487-4ffc-ab36-790856f15e03",
+      "name": "Sticky_準備 AI Prompt2",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1664,
-        80
+        4928,
+        3088
       ]
     },
     {
@@ -288,13 +288,13 @@
         "width": 220,
         "color": 6
       },
-      "id": "671ccd08-83c2-40ec-b9d1-e18971235212",
-      "name": "Sticky_MCP Initialize",
+      "id": "0d40aaff-5e01-4e9b-b740-6475c5dd4145",
+      "name": "Sticky_MCP Initialize1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2896,
-        80
+        6160,
+        3088
       ]
     },
     {
@@ -304,13 +304,13 @@
         "width": 220,
         "color": 6
       },
-      "id": "50e69ab4-39fc-4fc2-a159-8cc04794bd7c",
-      "name": "Sticky_MCP: 新增支出記錄",
+      "id": "ea9a68f4-c151-4dba-abde-521cad39e395",
+      "name": "Sticky_MCP: 新增支出記錄1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        3136,
-        80
+        6400,
+        3088
       ]
     },
     {
@@ -320,13 +320,13 @@
         "width": 348,
         "color": 6
       },
-      "id": "4aff6f20-3042-4aa8-97ee-8f0b6f2f2e9f",
-      "name": "Sticky_AI Agent",
+      "id": "e55ba3e1-c721-429d-9619-55197c9c138c",
+      "name": "Sticky_AI Agent2",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2160,
-        80
+        5424,
+        3088
       ]
     },
     {
@@ -336,13 +336,13 @@
         "width": 284,
         "color": 6
       },
-      "id": "5ab75260-29ae-4cd4-9f75-1bb3ca9f0616",
-      "name": "Sticky_Send a text message",
+      "id": "a785beed-debc-4079-9b50-4e372b4e1c0d",
+      "name": "Sticky_Send a text message1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        3376,
-        80
+        6640,
+        3088
       ]
     },
     {
@@ -352,13 +352,13 @@
         "width": 332,
         "color": 6
       },
-      "id": "1c75d9fa-1c1f-419f-987d-1fb943bf3ddd",
-      "name": "Sticky_Check the output",
+      "id": "436a45f7-d1d1-443b-a25a-e4d7d5ac3f76",
+      "name": "Sticky_Check the output1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2544,
-        80
+        5808,
+        3088
       ]
     },
     {
@@ -368,13 +368,13 @@
         "width": 252,
         "color": 6
       },
-      "id": "160e7748-cb31-481d-a35f-70a9cfc85969",
-      "name": "Sticky_Webhook",
+      "id": "47bf397a-0ad4-43bf-b033-7b64d04ffb0b",
+      "name": "Sticky_Webhook1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1344,
-        80
+        4608,
+        3088
       ]
     },
     {
@@ -384,13 +384,13 @@
         "width": 188,
         "color": 4
       },
-      "id": "4fb0e401-eac1-4983-a490-788147003c1d",
-      "name": "Sticky_ChatAnyWhere Model",
+      "id": "b4fc5f17-026b-469b-a354-ac5d86b749c4",
+      "name": "Sticky_ChatAnyWhere Model1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2208,
-        480
+        5472,
+        3488
       ]
     },
     {
@@ -400,13 +400,13 @@
         "width": 252,
         "color": 6
       },
-      "id": "b1523985-802e-426b-9107-d0eefa6e33dc",
-      "name": "Sticky_Telegram Trigger",
+      "id": "1759b09c-2f7e-445c-849d-37b56f220a51",
+      "name": "Sticky_Telegram Trigger1",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1344,
-        416
+        4608,
+        3424
       ]
     },
     {
@@ -420,11 +420,11 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        2256,
-        240
+        5520,
+        3248
       ],
-      "id": "8a4f3c02-2643-4583-bcd8-0a010b8656da",
-      "name": "AI Agent1"
+      "id": "665e1499-1b3a-43c0-9839-bc8114d928b5",
+      "name": "AI Agent2"
     },
     {
       "parameters": {
@@ -433,7 +433,7 @@
             {
               "id": "a1b2c3d4-0001-0001-0001-a1b2c3d40001",
               "name": "systemPrompt",
-              "value": "=你是一個專業的財務記帳助理。\n請從輸入的收據內容中，擷取關鍵交易資訊，並「只」以純 JSON 格式回傳，不可包含任何其他文字、markdown 或 code block。\n\n【絕對規則 1：分類名稱】\n你只能從以下清單中「一字不差」地挑選一個 category_name：\n[Housing, Phone Bill, Food & Grocery, Transportation, \nMedical & Healthcare, Coffee Drink & Dessert, Hangout, Workout, Travel, Gifts, Clothing, Subscribe, Other]\n\nFood & Grocery 一般是指:   Walmart, Target, Costco, Sam's Club, BJ's Wholesale Club, Aldi, Trader Joe's, Whole Foods Market, Kroger, Sprouts Farmers Market, Safeway\nMedical & Healthcare  一般是指:   CVS Pharmacy, Walgreens\n\n⚠️ 若信件內容無法明確歸類，請一律強制填寫 \"Other\"，絕不可自行發明分類！\n\n【絕對規則 2：帳戶名稱】\n你只能從以下清單中「一字不差」地挑選一個 account_name：\n[Chase 銀行, Chase Unlimited Freedom, Customized Cash Reward, CITI StrataSM, Apple credit card]\n\nHits:\n- \"Chase Unlimited Freedom\" (Issued by Chase) -6682\n- \"Customized Cash Reward\" (Issued by Bank of America) -2901\n- \"CITI StrataSM\" (Issued by Citi) -0284\n- \"Apple credit card\" (Issued by Apple) -0242\n\n⚠️ 優先從信件的付款資訊 (如卡號末四碼、支付方式或 email) 推測。若完全無法辨識，請一律強制預設為 \"Chase 銀行\"，絕不可自行翻譯或捏造!\n\n【輸出 JSON 格式範例】\n{ \"time\": \"{{ $now.toISO() }}\", \"amount\": \"14.50\", \"category_name\": \"Food & Grocery\", \"account_name\": \"Chase 銀行\", \"comment\": \"UberEats 晚餐\" } \n",
+              "value": "=你是一個專業的財務記帳助理。\n請從輸入的收據內容中，擷取關鍵交易資訊，並「只」以純 JSON 格式回傳，不可包含任何其他文字、markdown 或 code block。\n\n【絕對規則 1：分類名稱】\n你只能從以下清單中「一字不差」地挑選一個 category_name：\n[Housing, Phone Bill, Food & Grocery, Transportation, \nMedical & Healthcare, Coffee Drink & Dessert, Hangout, Workout, Travel, Gifts, Clothing, Subscribe, Other]\n\nFood & Grocery 一般是指:   Walmart, Target, Costco, Sam's Club, BJ's Wholesale Club, Aldi, Trader Joe's, Whole Foods Market, Kroger, Sprouts Farmers Market, Safeway\nMedical & Healthcare  一般是指:   CVS Pharmacy, Walgreens\n\n⚠️ 若信件內容無法明確歸類，請一律強制填寫 \"Other\"，絕不可自行發明分類！\n\n【絕對規則 2：帳戶名稱】\n你只能從以下清單中「一字不差」地挑選一個 account_name：\n[Chase 銀行, Chase Unlimited Freedom, Customized Cash Reward, CITI StrataSM, Apple credit card]\n\n⚠️ 優先從信件的付款資訊 (如卡號末四碼、支付方式或 email) 推測。若完全無法辨識，請一律強制預設為 \"Chase 銀行\"，絕不可自行翻譯或捏造!\n\n【輸出 JSON 格式範例】\n{ \"time\": \"{{ $now.toISO() }}\", \"amount\": \"14.50\", \"category_name\": \"Food & Grocery\", \"account_name\": \"Chase 銀行\", \"comment\": \"UberEats 晚餐\" } \n",
               "type": "string"
             },
             {
@@ -452,132 +452,132 @@
         },
         "options": {}
       },
-      "id": "0a88f03f-c1cd-4118-8525-d3cc2e53c97f",
-      "name": "pre- AI Prompt",
+      "id": "e7560107-aaa1-4f23-864f-88ec146c5d55",
+      "name": "pre- AI Prompt1",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1776,
-        240
+        5040,
+        3248
       ]
     }
   ],
   "connections": {
-    "Gmail Trigger": {
+    "Gmail Trigger1": {
       "main": [
         [
           {
-            "node": "Filter",
+            "node": "Filter1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "MCP Initialize": {
+    "MCP Initialize1": {
       "main": [
         [
           {
-            "node": "MCP: 新增支出記錄",
+            "node": "MCP: 新增支出記錄1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "MCP: 新增支出記錄": {
+    "MCP: 新增支出記錄1": {
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "Send a text message1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Check the output": {
+    "Check the output1": {
       "main": [
         [
           {
-            "node": "MCP Initialize",
+            "node": "MCP Initialize1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Webhook": {
+    "Webhook1": {
       "main": [
         [
           {
-            "node": "pre- AI Prompt",
+            "node": "pre- AI Prompt1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "ChatAnyWhere Model": {
+    "ChatAnyWhere Model1": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent1",
+            "node": "AI Agent2",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Telegram Trigger": {
+    "Telegram Trigger1": {
       "main": [
         [
           {
-            "node": "pre- AI Prompt",
+            "node": "pre- AI Prompt1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "cleaning format": {
+    "cleaning format1": {
       "main": [
         [
           {
-            "node": "pre- AI Prompt",
+            "node": "pre- AI Prompt1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Filter": {
+    "Filter1": {
       "main": [
         [
           {
-            "node": "cleaning format",
+            "node": "cleaning format1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent1": {
+    "AI Agent2": {
       "main": [
         [
           {
-            "node": "Check the output",
+            "node": "Check the output1",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "pre- AI Prompt": {
+    "pre- AI Prompt1": {
       "main": [
         [
           {
-            "node": "AI Agent1",
+            "node": "AI Agent2",
             "type": "main",
             "index": 0
           }
