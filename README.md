@@ -2,7 +2,7 @@
 
 > An end-to-end automated bookkeeping workflow using n8n, GCP, and OpenAI to eliminate manual data entry via omni-channel data ingestion.
 
-
+![GCP](https://img.shields.io/badge/GCP-Deployed-blue) ![n8n](https://img.shields.io/badge/n8n-Workflow-orange) ![LLMs](https://img.shields.io/badge/OpenAI-GPT--4o--mini-purple) ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
 
 ## 🚀 Why I Built This (The Impact)
 
@@ -12,7 +12,7 @@ Manual budget tracking is inherently error-prone and time-consuming. Traditional
 - **Categorize real-time transactions automatically** with zero human intervention by leveraging AI semantic understanding.
 - **Save dozens of hours monthly**, ensuring flawless financial reporting and immediate cash flow visibility.
 
-![GCP](https://img.shields.io/badge/GCP-Deployed-blue) ![n8n](https://img.shields.io/badge/n8n-Workflow-orange) ![LLMs](https://img.shields.io/badge/OpenAI-GPT--4o--mini-purple) ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
+
 
 <img src="./demo.gif" alt="Financial Pipeline Demo" width="300">
 ## 🧠 System Architecture
