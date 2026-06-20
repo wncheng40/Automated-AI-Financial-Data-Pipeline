@@ -59,7 +59,7 @@ Alongside daily transaction parsing, I engineered a secondary n8n workflow desig
 
 ## 🛠️ Tech Stack
 
-- **Orchestration**: n8n
+- **Orchestration**: n8n (Self-hosted via Docker)
 - **Cloud Infrastructure**: Google Cloud Platform (GCP) Virtual Private Server (VPS)
 - **Database**: PostgreSQL
 - **AI / Logic**: OpenAI GPT-4o-mini, Prompt Engineering
