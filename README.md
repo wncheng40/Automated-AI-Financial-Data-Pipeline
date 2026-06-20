@@ -15,6 +15,7 @@ Manual budget tracking is inherently error-prone and time-consuming. Traditional
 
 
 <img src="./demo.gif" alt="Financial Pipeline Demo" width="300">
+
 ## 🧠 System Architecture
 
 ```mermaid
