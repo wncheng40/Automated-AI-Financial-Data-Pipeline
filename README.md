@@ -45,8 +45,11 @@ graph TD
   - **Apple Pay / NFC**: Integrated iOS Shortcuts to trigger secure webhooks instantly upon tap.
   - **Telegram Bot**: Supports manual edge-cases via text input or voice message transcription.
   - **Receipt OCR**: Resolves the "cash payment" problem by passing photo uploads directly to AI vision models.
+
 - **Cross-Bank Normalization (JavaScript)**: Developed custom JavaScript nodes within n8n to strip diverse HTML/text formats from different banks, outputting a unified data schema before it hits the LLM. This saves token cost and improves accuracy.
+
 - **Prompt Engineering & Context Control**: Mitigated LLM hallucination by injecting strict system prompts containing a custom dictionary of categories and definitions. The model maps unstructured text strictly to predefined schemas rather than guessing.
+  
 - **Fault Tolerance & Fallback Logic**: 
   - If the transaction context is completely unrecognizable or missing key data, the pipeline halts to prevent database pollution (dirty data).
   - If recognizable but ambiguous, the pipeline defaults to an "Other" category for seamless manual review.
