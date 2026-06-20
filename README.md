@@ -4,6 +4,8 @@
 
 ![GCP](https://img.shields.io/badge/GCP-Deployed-blue) ![n8n](https://img.shields.io/badge/n8n-Workflow-orange) ![LLMs](https://img.shields.io/badge/OpenAI-GPT--4o--mini-purple) ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-blue)
 
+![Financial Pipeline Demo](./demo.gif)
+
 ## 🚀 Why I Built This (The Impact)
 
 Manual budget tracking is inherently error-prone and time-consuming. Traditional automation relies on brittle Regex rules that fail when transaction descriptions or bank email formats change. I engineered this intelligent pipeline to:
@@ -64,7 +66,7 @@ Alongside daily transaction parsing, I engineered a secondary n8n workflow desig
 - **Application**: ezbookkeeping (Self-hosted via Docker)
 - **Integrations**: iOS Shortcuts (Webhooks), Telegram API
 
-## 🎬 Demo 
+ 
 
 ---
 *Developed by [Weilin Cheng](https://www.linkedin.com/in/weilin-cheng/) | [Portfolio](https://wlc.gd.edu.kg/)*
